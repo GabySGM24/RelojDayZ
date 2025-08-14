@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hora DayZ</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212">
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -66,6 +68,7 @@
 
 <script>
 const serverId = "30957355"; // ID fijo del servidor
+
 async function fetchServer(id) {
   const url = `https://api.battlemetrics.com/servers/${encodeURIComponent(id)}`;
   const r = await fetch(url, { headers: { 'Accept': 'application/vnd.api+json' } });
@@ -116,16 +119,18 @@ async function load() {
     document.getElementById('dayNightIndicator').textContent = err.message;
     document.getElementById('dayNightIndicator').className = '';
   }
-  if ('serviceWorker' in navigator) {
+}
+
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js')
     .then(() => console.log('Service Worker registrado'))
     .catch(err => console.log('Error registrando SW:', err));
 }
-}
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#121212">
+
+// Primera carga y auto-actualización cada minuto
 load();
-setInterval(load, 60000); // Auto-actualiza cada minuto
+setInterval(load, 60000);
 </script>
 </body>
 </html>
