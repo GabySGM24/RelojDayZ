@@ -3,51 +3,72 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hora del servidor DayZ (BattleMetrics)</title>
+  <title>Hora DayZ</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212">
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-    h1 { margin-top: 0; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 12px 0; }
-    .muted { color: #666; }
-    code, pre { background:#f6f8fa; padding: 2px 6px; border-radius:6px; }
-    .grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-    .kv { display:flex; justify-content:space-between; gap:12px; }
-    .key { font-weight:600; }
-    .value { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .highlight { background: #fff7cc; border: 1px solid #f2e088; padding: 8px; border-radius: 8px; }
-    button { padding:8px 12px; border-radius:8px; border:1px solid #ccc; background:white; cursor:pointer; }
-    button:hover { background:#f3f3f3; }
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #121212;
+      color: #fff;
+      margin: 0;
+    }
+    #timeBox {
+      background: #1f1f1f;
+      padding: 20px 40px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    #detectedTime {
+      font-size: 3rem;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 10px;
+    }
+    #dayNightIndicator {
+      font-size: 1.5rem;
+      padding: 8px 16px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    #dayNightIndicator.dia {
+      background-color: #28a745;
+      color: #fff;
+    }
+    #dayNightIndicator.noche {
+      background-color: #343a40;
+      color: #fff;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
-  <h1>Hora del servidor DayZ</h1>
-  <p>Fuente: <a id="bmLink" target="_blank" rel="noopener">BattleMetrics</a></p>
-
-  <div class="card">
-    <label for="serverId">ID de servidor (BattleMetrics):</label>
-    <input id="serverId" value="30957355" style="width:160px; margin:0 8px;" />
-    <button id="refreshBtn">Actualizar</button>
-    <span id="status" class="muted"></span>
-  </div>
-
-  <div class="card highlight" id="mainTime" style="display:none;">
-    <div><strong>Hora detectada:</strong> <span id="detectedTime" class="value"></span></div>
-    <div class="muted" id="timeKey"></div>
-  </div>
-
-  <div class="card" id="timeFields" style="display:none;">
-    <h3>Campos relacionados con “time”</h3>
-    <div id="timeGrid" class="grid"></div>
-  </div>
-
-  <div class="card">
-    <details>
-      <summary>Ver JSON completo (debug)</summary>
-      <pre id="rawJson" style="white-space:pre-wrap;"></pre>
-    </details>
+  <div id="timeBox">
+    <span id="detectedTime">--:--</span>
+    <div id="dayNightIndicator"></div>
+    <button onclick="load()">Actualizar</button>
   </div>
 
 <script>
+const serverId = "30957355"; // ID fijo del servidor
+
 async function fetchServer(id) {
   const url = `https://api.battlemetrics.com/servers/${encodeURIComponent(id)}`;
   const r = await fetch(url, { headers: { 'Accept': 'application/vnd.api+json' } });
@@ -69,69 +90,47 @@ function* walk(obj, path = []) {
 function formatPath(pathArr) { return pathArr.join('.'); }
 
 async function load() {
-  const id = document.getElementById('serverId').value.trim();
-  const bmLink = document.getElementById('bmLink');
-  bmLink.href = `https://www.battlemetrics.com/servers/dayz/${encodeURIComponent(id)}`;
-
-  const status = document.getElementById('status');
-  const mainTime = document.getElementById('mainTime');
-  const detectedTime = document.getElementById('detectedTime');
-  const timeKey = document.getElementById('timeKey');
-  const timeFields = document.getElementById('timeFields');
-  const timeGrid = document.getElementById('timeGrid');
-  const rawJson = document.getElementById('rawJson');
-
-  mainTime.style.display = 'none';
-  timeFields.style.display = 'none';
-  status.textContent = 'Consultando…';
-
   try {
-    const json = await fetchServer(id);
-    rawJson.textContent = JSON.stringify(json, null, 2);
-
+    const json = await fetchServer(serverId);
     const attrs = json?.data?.attributes ?? {};
-    // Buscar cualquier key que contenga "time" en attributes + details
-    const matches = [];
+    let hora = null;
     for (const entry of walk(attrs)) {
-      const keyPath = formatPath(entry.path);
-      if (/time/i.test(entry.key) || /time/i.test(keyPath)) {
-        // ignorar timestamps obvios si prefieres (createdAt/updatedAt)
-        matches.push({ path: keyPath, value: entry.value });
+      if (/time/i.test(entry.key) || /time/i.test(formatPath(entry.path))) {
+        if (typeof entry.value === 'string' && /^\d{2}:\d{2}$/.test(entry.value)) {
+          hora = entry.value;
+          break;
+        }
       }
     }
 
-    // Heurística: priorizar algo que parezca la hora del mundo (e.g., "time", "gameTime", "worldTime")
-    const primary = matches.find(m => /\b(game)?time\b/i.test(m.path)) 
-                 || matches.find(m => /world.*time/i.test(m.path))
-                 || matches[0];
-
-    timeGrid.innerHTML = '';
-    if (matches.length) {
-      timeFields.style.display = 'block';
-      for (const m of matches) {
-        const div = document.createElement('div');
-        div.className = 'kv';
-        const k = document.createElement('div'); k.className = 'key'; k.textContent = m.path;
-        const v = document.createElement('div'); v.className = 'value'; v.textContent = typeof m.value === 'object' ? JSON.stringify(m.value) : String(m.value);
-        div.appendChild(k); div.appendChild(v);
-        timeGrid.appendChild(div);
-      }
+    if (hora) {
+      document.getElementById('detectedTime').textContent = hora;
+      const [h, m] = hora.split(':').map(Number);
+      const totalMin = h * 60 + m;
+      const amanecer = 5 * 60;   // 05:00
+      const anochecer = 21 * 60; // 21:00
+      const isDay = totalMin >= amanecer && totalMin < anochecer;
+      const indicator = document.getElementById('dayNightIndicator');
+      indicator.textContent = isDay ? 'Es de DÍA' : 'Es de NOCHE';
+      indicator.className = isDay ? 'dia' : 'noche';
     }
-
-    if (primary) {
-      mainTime.style.display = 'block';
-      detectedTime.textContent = typeof primary.value === 'object' ? JSON.stringify(primary.value) : String(primary.value);
-      timeKey.textContent = `Campo: ${primary.path}`;
-    }
-
-    status.textContent = 'OK';
   } catch (err) {
-    status.textContent = `Error: ${err.message}. Si es CORS, abrí este archivo con un servidor local.`;
+    document.getElementById('detectedTime').textContent = "Error";
+    document.getElementById('dayNightIndicator').textContent = err.message;
+    document.getElementById('dayNightIndicator').className = '';
   }
 }
 
-document.getElementById('refreshBtn').addEventListener('click', load);
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log('Service Worker registrado'))
+    .catch(err => console.log('Error registrando SW:', err));
+}
+
+// Primera carga y auto-actualización cada minuto
 load();
+setInterval(load, 60000);
 </script>
 </body>
 </html>
