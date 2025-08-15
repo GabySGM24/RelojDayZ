@@ -4,252 +4,128 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hora DayZ</title>
-
-  <!-- PWA (opcional, si ya lo tenés en el repo) -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0c3e8f">
-
-  <!-- Fuente estilo digital -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
-
   <style>
-    :root{
-      --bg1:#0a2a75;
-      --bg2:#0f3fa6;
-      --card:#0d2f86;
-      --glow:#8fc6ff;
-      --text:#e8f3ff;
-      --muted:#b9d3ff;
-      --btn:#1e63ff;
-      --btn-press:#0f4be0;
-      --shadow-dark: rgba(0,0,0,.55);
-      --shadow-light: rgba(255,255,255,.25);
-      --radius:28px;
-    }
-
-    /* Night tweak */
-    body.night {
-      --bg1:#061e53;
-      --bg2:#0a2a75;
-      --card:#0b256d;
-      --glow:#9bd1ff;
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      display:grid;
-      place-items:center;
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(255,255,255,.08), transparent 60%),
-                  radial-gradient(900px 700px at 80% 80%, rgba(255,255,255,.06), transparent 60%),
-                  linear-gradient(135deg, var(--bg1), var(--bg2));
-      overflow:hidden;
-      padding:24px;
-    }
-
-    .card{
-      width:min(92vw, 560px);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border-radius: var(--radius);
-      padding: 28px 26px;
-      text-align:center;
-      box-shadow:
-        18px 18px 40px var(--shadow-dark),
-        -10px -10px 24px rgba(255,255,255,.08),
-        inset 2px 2px 6px rgba(255,255,255,.12),
-        inset -3px -3px 12px rgba(0,0,0,.2);
-      border:1px solid rgba(255,255,255,.14);
-      backdrop-filter: blur(6px);
-    }
-
-    .title{
-      font-weight:700;
-      letter-spacing:.3px;
-      margin:0 0 14px;
-      color:var(--muted);
-      font-size:clamp(16px, 2.2vw, 18px);
-      text-shadow: 0 1px 0 rgba(0,0,0,.3);
-    }
-
-    .display{
-      font-family:'Orbitron', ui-monospace, monospace;
-      font-weight:900;
-      font-size: clamp(56px, 11vw, 120px);
-      letter-spacing:.06em;
-      line-height:1;
-      color: var(--glow);
-      text-shadow:
-        0 0 12px rgba(143,198,255,.75),
-        0 0 26px rgba(143,198,255,.45),
-        0 6px 30px rgba(0,0,0,.7);
-      background:
-        radial-gradient(120% 120% at 50% 30%, rgba(255,255,255,.18), transparent 60%),
-        linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 55%);
-      padding: 22px 16px;
-      border-radius: 22px;
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:
-        inset 0 2px 8px rgba(255,255,255,.18),
-        inset 0 -10px 22px rgba(0,0,0,.35);
-      margin: 6px auto 14px;
-      width:100%;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      font-weight:700;
-      letter-spacing:.4px;
-      border-radius:999px;
-      padding:10px 16px;
-      margin: 2px 0 18px;
-      font-size: clamp(14px, 3.4vw, 18px);
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow:
-        6px 6px 16px var(--shadow-dark),
-        -4px -4px 10px var(--shadow-light),
-        inset 0 2px 8px rgba(255,255,255,.12);
-    }
-    .badge.day{
-      background: linear-gradient(180deg, rgba(56,189,248,.25), rgba(59,130,246,.18));
-      color:#eaf6ff;
-    }
-    .badge.night{
-      background: linear-gradient(180deg, rgba(148,163,184,.25), rgba(71,85,105,.22));
-      color:#f1f5f9;
-    }
-
-    .btn{
-      appearance:none; border:0; cursor:pointer;
-      background: linear-gradient(180deg, var(--btn), #1652ff);
-      color:#fff; font-weight:700;
-      padding:12px 22px; border-radius: 999px;
-      font-size:clamp(14px, 3.6vw, 16px);
-      box-shadow:
-        14px 14px 28px rgba(0,0,0,.45),
-        -8px -8px 18px rgba(255,255,255,.08),
-        inset 0 2px 10px rgba(255,255,255,.25);
-      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease, background .12s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); filter:saturate(1.05); }
-    .btn:active{
-      transform: translateY(0);
-      background: linear-gradient(180deg, var(--btn-press), #0f46c9);
-      box-shadow:
-        8px 8px 16px rgba(0,0,0,.5),
-        inset 0 3px 14px rgba(0,0,0,.35);
-    }
-
-    .hint{
-      margin-top:12px;
-      font-size:12px;
-      color:rgba(233,243,255,.7);
-      opacity:.8;
-    }
+    :root{ --bg1:#0a2a75; --bg2:#0f3fa6; --glow:#8fc6ff; --text:#e8f3ff; --muted:#b9d3ff; --btn:#1e63ff; --btn-press:#0f4be0; }
+    body{ margin:0; height:100vh; display:grid; place-items:center; background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--text); font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif; padding:24px; }
+    .card{ width:min(92vw,560px); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:28px; padding:26px; text-align:center; backdrop-filter:blur(6px); box-shadow:18px 18px 40px rgba(0,0,0,.55), -10px -10px 24px rgba(255,255,255,.08); }
+    .display{ font-family:'Orbitron', ui-monospace, monospace; font-weight:900; font-size:clamp(56px,11vw,120px); color:var(--glow); text-shadow:0 0 12px rgba(143,198,255,.75),0 0 26px rgba(143,198,255,.45),0 6px 30px rgba(0,0,0,.7); padding:22px 16px; border-radius:22px; border:1px solid rgba(255,255,255,.16); margin:6px auto 14px; }
+    .badge{ display:inline-block; padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,.12); font-weight:700; margin-bottom:16px; }
+    .badge.day{ background:linear-gradient(180deg, rgba(56,189,248,.25), rgba(59,130,246,.18)); }
+    .badge.night{ background:linear-gradient(180deg, rgba(148,163,184,.25), rgba(71,85,105,.22)); }
+    .row{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:8px 0 14px; }
+    .row label{ font-size:14px; color:var(--muted); }
+    .row input{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); color:#fff; border-radius:10px; padding:8px 10px; }
+    .btn{ border:0; background:linear-gradient(180deg,var(--btn),#1652ff); color:#fff; font-weight:700; padding:10px 18px; border-radius:999px; cursor:pointer; }
+    .btn:active{ background:linear-gradient(180deg,var(--btn-press),#0f46c9); }
+    .hint{ font-size:12px; color:rgba(233,243,255,.7); margin-top:10px; }
   </style>
 </head>
 <body>
   <main class="card">
-    <p class="title">Hora del servidor DayZ</p>
     <div id="display" class="display">--:--</div>
     <div id="badge" class="badge night">Cargando…</div>
-    <button class="btn" onclick="load()">Actualizar</button>
-    <div class="hint">Se actualiza solo cada minuto</div>
+
+    <!-- Controles para ajustar amanecer/anochecer -->
+    <div class="row">
+      <label>🌅 Amanecer: <input id="inSunrise" type="time" value="05:00"></label>
+      <label>🌇 Anochecer: <input id="inSunset" type="time" value="21:00"></label>
+      <button class="btn" id="btnSave">Guardar</button>
+    </div>
+
+    <button class="btn" id="btnRefresh">Actualizar</button>
+    <div class="hint">Día ≈ 3 h · Noche ≈ 40 min (oficial). El horario exacto depende del servidor. </div>
   </main>
 
   <script>
-    const serverId = "30957355"; // ID de BattleMetrics
-    const amanecer = 5 * 60;     // 05:00
-    const anochecer = 21 * 60;   // 21:00
+    const serverId = "30957355"; // BattleMetrics
+    // Carga config guardada o valores por defecto
+    function loadConfig(){
+      const sunrise = localStorage.getItem('sunrise') || '05:00';
+      const sunset  = localStorage.getItem('sunset')  || '21:00';
+      inSunrise.value = sunrise;
+      inSunset.value  = sunset;
+      return { sunrise, sunset };
+    }
+    function toMinutes(HHMM){ const [h,m]=HHMM.split(':').map(Number); return h*60+m; }
 
-    async function fetchServer(id) {
+    async function fetchServer(id){
       const url = `https://api.battlemetrics.com/servers/${encodeURIComponent(id)}`;
-      const r = await fetch(url, { headers: { 'Accept': 'application/vnd.api+json' } });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const r = await fetch(url,{ headers:{ 'Accept':'application/vnd.api+json' }});
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();
     }
-
-    function* walk(obj, path = []) {
-      if (obj && typeof obj === 'object') {
-        for (const k of Object.keys(obj)) {
-          const v = obj[k]; const newPath = path.concat(k);
-          yield { key: k, value: v, path: newPath };
-          if (v && typeof v === 'object') yield* walk(v, newPath);
+    function* walk(obj, path=[]){
+      if(obj && typeof obj==='object'){
+        for(const k of Object.keys(obj)){
+          const v=obj[k], newPath=path.concat(k);
+          yield {key:k, value:v, path:newPath};
+          if(v && typeof v==='object') yield* walk(v,newPath);
         }
       }
     }
+    const display = document.getElementById('display');
+    const badge   = document.getElementById('badge');
+    const inSunrise = document.getElementById('inSunrise');
+    const inSunset  = document.getElementById('inSunset');
+    const btnSave   = document.getElementById('btnSave');
+    const btnRefresh= document.getElementById('btnRefresh');
 
-    function formatPath(pathArr) { return pathArr.join('.'); }
+    btnSave.onclick = () => {
+      localStorage.setItem('sunrise', inSunrise.value);
+      localStorage.setItem('sunset',  inSunset.value);
+      load(); // recalcular con los nuevos
+    };
+    btnRefresh.onclick = () => load();
 
-    async function load() {
-      try {
+    async function load(){
+      try{
+        const {sunrise, sunset} = loadConfig();
         const json = await fetchServer(serverId);
         const attrs = json?.data?.attributes ?? {};
         let hora = null;
-
-        for (const entry of walk(attrs)) {
-          if (/time/i.test(entry.key) || /time/i.test(formatPath(entry.path))) {
-            if (typeof entry.value === 'string' && /^\d{2}:\d{2}$/.test(entry.value)) {
+        for(const entry of walk(attrs)){
+          const path = entry.path.join('.');
+          if(/time/i.test(entry.key) || /time/i.test(path)){
+            if(typeof entry.value==='string' && /^\d{2}:\d{2}$/.test(entry.value)){
               hora = entry.value; break;
             }
           }
         }
+        if(!hora) throw new Error('No se detectó hora');
 
-        const display = document.getElementById('display');
-        const badge = document.getElementById('badge');
+        display.textContent = hora;
 
-        if (hora) {
-          display.textContent = hora;
+        const totalMin = toMinutes(hora);
+        const isDay = totalMin >= toMinutes(sunrise) && totalMin < toMinutes(sunset);
+        badge.textContent = isDay ? 'Es de DÍA' : 'Es de NOCHE';
+        badge.className = 'badge ' + (isDay ? 'day' : 'night');
 
-          const [h, m] = hora.split(':').map(Number);
-          const totalMin = h * 60 + m;
-          const isDay = totalMin >= amanecer && totalMin < anochecer;
-
-          badge.textContent = isDay ? 'Es de DÍA' : 'Es de NOCHE';
-          badge.className = 'badge ' + (isDay ? 'day' : 'night');
-
-          document.body.classList.toggle('night', !isDay);
-          // Guarda última hora por si estás offline la próxima
-          localStorage.setItem('lastHora', hora);
-          localStorage.setItem('lastIsDay', String(isDay));
-        } else {
-          throw new Error('No se detectó el campo de hora');
-        }
-      } catch (err) {
+        localStorage.setItem('lastHora', hora);
+        localStorage.setItem('lastIsDay', String(isDay));
+      }catch(err){
         const last = localStorage.getItem('lastHora');
-        const lastIsDay = localStorage.getItem('lastIsDay') === 'true';
-        const display = document.getElementById('display');
-        const badge = document.getElementById('badge');
-
-        if (last) {
+        const lastIsDay = localStorage.getItem('lastIsDay')==='true';
+        if(last){
           display.textContent = last + ' *';
           badge.textContent = lastIsDay ? 'DÍA (cache)' : 'NOCHE (cache)';
           badge.className = 'badge ' + (lastIsDay ? 'day' : 'night');
-          document.body.classList.toggle('night', !lastIsDay);
-        } else {
+        }else{
           display.textContent = 'Error';
           badge.textContent = err.message;
           badge.className = 'badge night';
-          document.body.classList.add('night');
         }
         console.log(err);
       }
     }
 
-    // PWA: registra Service Worker si existe
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('Service Worker registrado'))
-        .catch(e => console.log('SW error', e));
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js').catch(()=>{});
     }
-
     load();
-    setInterval(load, 60000); // auto-actualiza cada minuto
+    setInterval(load, 60000);
   </script>
 </body>
-</html> 
+</html>
