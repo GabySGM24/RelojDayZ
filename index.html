@@ -3,78 +3,123 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reloj simple</title>
+  <title>Hora DayZ</title>
   <style>
-    :root{
-      --bg:#0e0e0e;
-      --card:#1f1f1f;
-      --text:#ffffff;
-      --pill-day:#22c55e;     /* verde */
-      --pill-night:#334155;   /* gris/azulado */
-      --btn:#1e63ff;          /* azul */
-      --btn-press:#0f4be0;
-      --radius:24px;
-      --shadow:0 18px 40px rgba(0,0,0,.45);
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #121212;
+      color: #fff;
+      margin: 0;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      display:grid;
-      place-items:center;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      padding:24px;
+    #timeBox {
+      background: #1f1f1f;
+      padding: 20px 40px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
-    .card{
-      width:min(92vw, 560px);
-      background:var(--card);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:38px 26px;
-      text-align:center;
+    #detectedTime {
+      font-size: 3rem;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 10px;
     }
-    .time{
-      font-size: clamp(64px, 15vw, 120px);
-      line-height:1;
-      font-weight:800;
-      letter-spacing:1px;
-      margin:0 0 22px;
+    #dayNightIndicator {
+      font-size: 1.5rem;
+      padding: 8px 16px;
+      border-radius: 8px;
+      margin-bottom: 15px;
     }
-    .pill{
-      display:inline-block;
-      padding:16px 24px;
-      border-radius:18px;
-      font-size: clamp(18px, 5vw, 28px);
-      font-weight:700;
-      margin: 4px 0 26px;
-      box-shadow: 0 8px 22px rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.08);
+    #dayNightIndicator.dia {
+      background-color: #28a745;
+      color: #fff;
     }
-    .pill.day{ background:var(--pill-day); color:#091a0f; }
-    .pill.night{ background:var(--pill-night); color:#e8f0ff; }
-    .btn{
-      display:inline-block;
-      padding:14px 22px;
-      border-radius:14px;
-      background:var(--btn);
-      color:#fff;
-      font-weight:700;
-      border:none;
-      cursor:pointer;
-      font-size: clamp(16px, 4.6vw, 22px);
-      box-shadow: 0 10px 26px rgba(30,99,255,.35);
+    #dayNightIndicator.noche {
+      background-color: #343a40;
+      color: #fff;
     }
-    .btn:active{ background:var(--btn-press); transform: translateY(1px); }
+    button {
+      padding: 8px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
-  <main class="card">
-    <div class="time" id="time">16:32</div>
-    <div class="pill day" id="state">Es de DÍA</div>
-    <br/>
-    <button class="btn">Actualizar</button>
-  </main>
+  <div id="timeBox">
+    <span id="detectedTime">--:--</span>
+    <div id="dayNightIndicator"></div>
+    <button onclick="load()">Actualizar</button>
+  </div>
+
+<script>
+const serverId = "30957355"; // ID fijo del servidor
+async function fetchServer(id) {
+  const url = `https://api.battlemetrics.com/servers/${encodeURIComponent(id)}`;
+  const r = await fetch(url, { headers: { 'Accept': 'application/vnd.api+json' } });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+function* walk(obj, path = []) {
+  if (obj && typeof obj === 'object') {
+    for (const k of Object.keys(obj)) {
+      const v = obj[k];
+      const newPath = path.concat(k);
+      yield { key: k, value: v, path: newPath };
+      if (v && typeof v === 'object') yield* walk(v, newPath);
+    }
+  }
+}
+
+function formatPath(pathArr) { return pathArr.join('.'); }
+
+async function load() {
+  try {
+    const json = await fetchServer(serverId);
+    const attrs = json?.data?.attributes ?? {};
+    let hora = null;
+    for (const entry of walk(attrs)) {
+      if (/time/i.test(entry.key) || /time/i.test(formatPath(entry.path))) {
+        if (typeof entry.value === 'string' && /^\d{2}:\d{2}$/.test(entry.value)) {
+          hora = entry.value;
+          break;
+        }
+      }
+    }
+
+    if (hora) {
+      document.getElementById('detectedTime').textContent = hora;
+      const [h, m] = hora.split(':').map(Number);
+      const totalMin = h * 60 + m;
+      const amanecer = 5 * 60;   // 05:00
+      const anochecer = 21 * 60; // 21:00
+      const isDay = totalMin >= amanecer && totalMin < anochecer;
+      const indicator = document.getElementById('dayNightIndicator');
+      indicator.textContent = isDay ? 'Es de DÍA' : 'Es de NOCHE';
+      indicator.className = isDay ? 'dia' : 'noche';
+    }
+  } catch (err) {
+    document.getElementById('detectedTime').textContent = "Error";
+    document.getElementById('dayNightIndicator').textContent = err.message;
+    document.getElementById('dayNightIndicator').className = '';
+  }
+}
+
+load();
+setInterval(load, 60000); // Auto-actualiza cada minuto
+</script>
 </body>
 </html>
